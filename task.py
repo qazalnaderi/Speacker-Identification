@@ -39,9 +39,13 @@ for _ in range(3):
                 non_silent_fs.append(frame)
 
         y_no_silence = np.concatenate(non_silent_fs)
-        librosa.display.waveshow(y_no_silence, sr=sr, alpha=0.6)
-        plt.xlabel("Time (s)")
-        plt.ylabel("Amplitude")
-        plt.title("Waveform without Silence")
-        plt.show()
+
+        segment_duration = 3
+        segment_samples = int(segment_duration * sr)
+        segments = []
+            
+        for i in range(0, len(y_no_silence), segment_samples):
+            segment = y_no_silence[i:i + segment_samples]
+            if len(segment) >= sr:  
+                segments.append(segment)
 
