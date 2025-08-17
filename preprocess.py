@@ -23,9 +23,8 @@ def preprocess(path, augment_audio):
     sig = librosa.util.normalize(sig)
     sig = sig.astype(np.float32)
 
-    # حذف سکوت
     vad = webrtcvad.Vad(0)
-    frame_len = int(sr * 30 / 1000)  # 30 ms
+    frame_len = int(sr * 30 / 1000)  
     non_silent = []
     for start in range(0, len(sig), frame_len):
       frame = sig[start:start+frame_len]
@@ -37,7 +36,6 @@ def preprocess(path, augment_audio):
       return None
     sig = np.concatenate(non_silent)
 
-    # قطعه 3 ثانیه
     segment_samples = 3 * sr
     if len(sig) > segment_samples:
       sig = sig[:segment_samples]
@@ -48,7 +46,6 @@ def preprocess(path, augment_audio):
       sig = augment(samples=sig.astype(np.float32), sample_rate=sr)
 
 
-    # MFCC + دلتا
     hop_length = 512
     n_fft = 2048
     mfcc = librosa.feature.mfcc(y=sig, sr=sr, n_fft=n_fft, hop_length=hop_length, n_mfcc=13)
@@ -56,12 +53,10 @@ def preprocess(path, augment_audio):
     delta2 = librosa.feature.delta(mfcc, order=2)
     feats = np.vstack([mfcc, delta, delta2]).T
 
-    # CMVN
     mean = feats.mean(axis=0, keepdims=True)
     std  = feats.std(axis=0, keepdims=True) + 1e-8
     feats = ((feats - mean) / std).astype(np.float32)
 
-    # فریم ثابت
     TARGET_FRAMES = 300
     T = feats.shape[0]
     if T < TARGET_FRAMES:
